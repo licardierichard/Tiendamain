@@ -1,0 +1,444 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>InviteU Digital - Invitaciones Digitales para Todos tus Eventos Especiales</title>
+    <meta name="description" content="Crea invitaciones digitales únicas para bodas, cumpleaños, bautizos, baby showers y más. Diseños personalizados con sistema de pago seguro.">
+    
+    <!-- Preconnect to external domains for better performance -->
+    <link rel="preconnect" href="https://js.stripe.com">
+    <link rel="preconnect" href="https://cdn.jsdelivr.net">
+    
+    <!-- Critical CSS - inline for fastest render -->
+    <style>
+        /* Critical above-the-fold styles */
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; line-height: 1.6; color: #333; }
+        .container { max-width: 1200px; margin: 0 auto; padding: 0 1rem; }
+        .navbar { position: sticky; top: 0; z-index: 50; background: rgba(255, 255, 255, 0.8); backdrop-filter: blur(12px); border-bottom: 1px solid rgba(0, 0, 0, 0.1); }
+        .hero { background: linear-gradient(135deg, #fdf2f8 0%, #faf5ff 50%, #fff 100%); padding: 3rem 0 6rem; }
+        .btn { display: inline-flex; align-items: center; justify-content: center; padding: 0.5rem 1rem; border: none; border-radius: 0.375rem; font-size: 0.875rem; font-weight: 500; text-decoration: none; cursor: pointer; transition: all 0.2s ease; }
+        .btn-primary { background: linear-gradient(to right, #ec4899, #a855f7); color: white; }
+        .loading { opacity: 0; }
+        .loaded { opacity: 1; transition: opacity 0.3s ease; }
+    </style>
+    
+    <!-- Load CSS asynchronously -->
+    <link rel="preload" href="css/critical.css" as="style" onload="this.onload=null;this.rel='stylesheet'">
+    <link rel="preload" href="css/components.css" as="style" onload="this.onload=null;this.rel='stylesheet'">
+    <link rel="preload" href="css/modals.css" as="style" onload="this.onload=null;this.rel='stylesheet'">
+    <link rel="preload" href="css/responsive.css" as="style" onload="this.onload=null;this.rel='stylesheet'">
+    
+    <!-- Fallback for browsers that don't support preload -->
+    <noscript>
+        <link rel="stylesheet" href="css/critical.css">
+        <link rel="stylesheet" href="css/components.css">
+        <link rel="stylesheet" href="css/modals.css">
+        <link rel="stylesheet" href="css/responsive.css">
+    </noscript>
+</head>
+<body class="loading">
+    <!-- Navigation -->
+    <header class="navbar" id="navbar">
+        <div class="container navbar-content">
+            <div class="navbar-left">
+                <button class="mobile-menu-btn" id="mobileMenuBtn" aria-label="Abrir menú">
+                    <svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <line x1="4" x2="20" y1="12" y2="12"/>
+                        <line x1="4" x2="20" y1="6" y2="6"/>
+                        <line x1="4" x2="20" y1="18" y2="18"/>
+                    </svg>
+                </button>
+                <a href="#" class="logo">
+                    <svg class="store-icon" viewBox="0 0 24 24" fill="none" stroke="url(#gradient)" stroke-width="2">
+                        <defs>
+                            <linearGradient id="gradient" x1="0%" y1="0%" x2="100%" y2="0%">
+                                <stop offset="0%" stop-color="#ec4899" />
+                                <stop offset="100%" stop-color="#a855f7" />
+                            </linearGradient>
+                        </defs>
+                        <path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"/>
+                    </svg>
+                    <span class="logo-text">InviteU.Digital</span>
+                </a>
+            </div>
+
+            <nav class="desktop-nav">
+                <a href="#inicio" class="nav-link">Inicio</a>
+                <div class="dropdown">
+                    <button class="dropbtn nav-link">
+                        Eventos
+                        <svg class="dropdown-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <polyline points="6,9 12,15 18,9"/>
+                        </svg>
+                    </button>
+                    <div class="dropdown-content">
+                        <a href="#eventos" data-filter="bodas">Bodas</a>
+                        <a href="#eventos" data-filter="cumpleanos">Cumpleaños</a>
+                        <a href="#eventos" data-filter="bautizos">Bautizos</a>
+                        <a href="#eventos" data-filter="baby-shower">Baby Showers</a>
+                        <a href="#eventos" data-filter="todos">Ver Todos</a>
+                    </div>
+                </div>
+                <a href="#paquetes" class="nav-link">Paquetes</a>
+                <a href="#testimonios" class="nav-link">Testimonios</a>
+                <a href="#contacto" class="nav-link">Contacto</a>
+            </nav>
+
+            <div class="navbar-right">
+                <div class="auth-buttons" id="authButtons">
+                    <button class="btn btn-outline" id="loginBtn">Iniciar Sesión</button>
+                    <button class="btn btn-primary" id="registerBtn">Registrarse</button>
+                </div>
+                <div class="user-menu" id="userMenu" style="display: none;">
+                    <div class="dropdown">
+                        <button class="user-btn" id="userBtn">
+                            <svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/>
+                                <circle cx="12" cy="7" r="4"/>
+                            </svg>
+                            <span id="userName">Usuario</span>
+                            <svg class="dropdown-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                <polyline points="6,9 12,15 18,9"/>
+                            </svg>
+                        </button>
+                        <div class="dropdown-content">
+                            <a href="#" id="userPanelBtn">Mi Panel</a>
+                            <a href="#" id="myOrdersBtn">Mis Pedidos</a>
+                            <a href="#" id="logoutBtn">Cerrar Sesión</a>
+                        </div>
+                    </div>
+                </div>
+                <button class="cart-btn" id="cartBtn" aria-label="Carrito de compras">
+                    <svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <circle cx="8" cy="21" r="1"/>
+                        <circle cx="19" cy="21" r="1"/>
+                        <path d="m2.05 2.05h2l2.66 12.42a2 2 0 0 0 2 1.58h9.78a2 2 0 0 0 1.95-1.57l1.65-7.43H5.12"/>
+                    </svg>
+                    <span class="cart-count" id="cartCount">0</span>
+                </button>
+            </div>
+        </div>
+
+        <!-- Mobile Menu -->
+        <div class="mobile-menu" id="mobileMenu">
+            <div class="mobile-menu-header">
+                <a href="#" class="logo">
+                    <svg class="store-icon" viewBox="0 0 24 24" fill="none" stroke="url(#gradient2)" stroke-width="2">
+                        <defs>
+                            <linearGradient id="gradient2" x1="0%" y1="0%" x2="100%" y2="0%">
+                                <stop offset="0%" stop-color="#ec4899" />
+                                <stop offset="100%" stop-color="#a855f7" />
+                            </linearGradient>
+                        </defs>
+                        <path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"/>
+                    </svg>
+                    <span class="logo-text">InviteU.Digital</span>
+                </a>
+                <button class="close-btn" id="closeMenuBtn" aria-label="Cerrar menú">
+                    <svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <line x1="18" x2="6" y1="6" y2="18"/>
+                        <line x1="6" x2="18" y1="6" y2="18"/>
+                    </svg>
+                </button>
+            </div>
+            <nav class="mobile-nav">
+                <a href="#inicio" class="mobile-nav-link">Inicio</a>
+                <a href="#eventos" class="mobile-nav-link">Eventos</a>
+                <a href="#paquetes" class="mobile-nav-link">Paquetes</a>
+                <a href="#testimonios" class="mobile-nav-link">Testimonios</a>
+                <a href="#contacto" class="mobile-nav-link">Contacto</a>
+            </nav>
+        </div>
+    </header>
+
+    <main>
+        <!-- Hero Section -->
+        <section id="inicio" class="hero">
+            <div class="container">
+                <div class="hero-content">
+                    <div class="hero-text">
+                        <div class="hero-badge">Invitaciones Digitales Únicas</div>
+                        <h1 class="hero-title">Invitaciones Digitales para Todos tus Eventos Especiales</h1>
+                        <p class="hero-description">
+                            Crea invitaciones digitales personalizadas para bodas, cumpleaños, bautizos, baby showers y más. Diseño web exclusivo, subdominio personalizado y gestión completa.
+                        </p>
+                        <div class="hero-buttons">
+                            <button class="btn btn-primary" onclick="scrollToSection('eventos')">Ver Diseños</button>
+                            <button class="btn btn-outline" onclick="scrollToSection('paquetes')">Ver Paquetes</button>
+                        </div>
+                    </div>
+                    <div class="hero-image">
+                        <div class="hero-slider">
+                            <div class="slider-container">
+                                <div class="slide active" data-event="bodas">
+                                    <img src="/placeholder.svg?height=400&width=400" alt="Invitación digital de boda elegante" loading="lazy">
+                                    <div class="slide-overlay">
+                                        <h3>Bodas</h3>
+                                        <p>Diseños románticos y elegantes</p>
+                                    </div>
+                                </div>
+                                <div class="slide" data-event="cumpleanos">
+                                    <img src="/placeholder.svg?height=400&width=400" alt="Invitación digital de cumpleaños colorida" loading="lazy">
+                                    <div class="slide-overlay">
+                                        <h3>Cumpleaños</h3>
+                                        <p>Celebra con estilo y diversión</p>
+                                    </div>
+                                </div>
+                                <div class="slide" data-event="bautizos">
+                                    <img src="/placeholder.svg?height=400&width=400" alt="Invitación digital de bautizo tierna" loading="lazy">
+                                    <div class="slide-overlay">
+                                        <h3>Bautizos</h3>
+                                        <p>Momentos especiales y sagrados</p>
+                                    </div>
+                                </div>
+                                <div class="slide" data-event="baby-shower">
+                                    <img src="/placeholder.svg?height=400&width=400" alt="Invitación digital de baby shower dulce" loading="lazy">
+                                    <div class="slide-overlay">
+                                        <h3>Baby Showers</h3>
+                                        <p>Celebra la llegada del bebé</p>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="slider-dots">
+                                <button class="dot active" data-slide="0" aria-label="Slide 1"></button>
+                                <button class="dot" data-slide="1" aria-label="Slide 2"></button>
+                                <button class="dot" data-slide="2" aria-label="Slide 3"></button>
+                                <button class="dot" data-slide="3" aria-label="Slide 4"></button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="hero-bg-1"></div>
+            <div class="hero-bg-2"></div>
+        </section>
+
+        <!-- Events Gallery Section -->
+        <section id="eventos" class="events-gallery">
+            <div class="container">
+                <div class="section-header">
+                    <h2 class="section-title">Diseños por Evento</h2>
+                    <p class="section-description">Explora nuestros diseños únicos para cada tipo de celebración</p>
+                </div>
+                
+                <div class="filter-buttons">
+                    <button class="filter-btn active" data-filter="todos">Todos</button>
+                    <button class="filter-btn" data-filter="bodas">Bodas</button>
+                    <button class="filter-btn" data-filter="cumpleanos">Cumpleaños</button>
+                    <button class="filter-btn" data-filter="bautizos">Bautizos</button>
+                    <button class="filter-btn" data-filter="baby-shower">Baby Showers</button>
+                </div>
+
+                <div class="events-grid" id="eventsGrid">
+                    <!-- Events will be loaded dynamically -->
+                </div>
+            </div>
+        </section>
+
+        <!-- Packages Section -->
+        <section id="paquetes" class="packages">
+            <div class="container">
+                <div class="section-header">
+                    <h2 class="section-title">Nuestros Paquetes</h2>
+                    <p class="section-description">Elige el paquete perfecto para tu invitación digital</p>
+                </div>
+                <div class="packages-grid" id="packagesGrid">
+                    <!-- Packages will be loaded dynamically -->
+                </div>
+            </div>
+        </section>
+
+        <!-- Testimonials Section -->
+        <section id="testimonios" class="testimonials">
+            <div class="container">
+                <div class="section-header">
+                    <h2 class="section-title">Lo que Dicen Nuestros Clientes</h2>
+                    <p class="section-description">Testimonios reales de quienes confiaron en nosotros para sus eventos especiales</p>
+                </div>
+                <div class="testimonials-grid" id="testimonialsGrid">
+                    <!-- Testimonials will be loaded dynamically -->
+                </div>
+            </div>
+        </section>
+
+        <!-- Contact Section -->
+        <section id="contacto" class="contact">
+            <div class="container">
+                <div class="contact-content">
+                    <div class="contact-info">
+                        <h2 class="contact-title">¿Listo para Crear tu Invitación?</h2>
+                        <p class="contact-description">
+                            Contáctanos y comencemos a diseñar la invitación digital perfecta para tu evento especial. Nuestro equipo está aquí para hacer realidad tu visión.
+                        </p>
+                        <div class="contact-details">
+                            <div class="contact-item">
+                                <svg class="contact-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                    <path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"/>
+                                    <polyline points="22,6 12,13 2,6"/>
+                                </svg>
+                                <div>
+                                    <h4>Email</h4>
+                                    <p>hola@inviteu.digital</p>
+                                </div>
+                            </div>
+                            <div class="contact-item">
+                                <svg class="contact-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                    <path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07 19.5 19.5 0 0 1-6-6 19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 4.11 2h3a2 2 0 0 1 2 1.72 12.84 12.84 0 0 0 .7 2.81 2 2 0 0 1-.45 2.11L8.09 9.91a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45 12.84 12.84 0 0 0 2.81.7A2 2 0 0 1 22 16.92z"/>
+                                </svg>
+                                <div>
+                                    <h4>Teléfono</h4>
+                                    <p>+34 123 456 789</p>
+                                </div>
+                            </div>
+                            <div class="contact-item">
+                                <svg class="contact-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                    <path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"/>
+                                    <circle cx="12" cy="10" r="3"/>
+                                </svg>
+                                <div>
+                                    <h4>Ubicación</h4>
+                                    <p>Madrid, España</p>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="contact-form-container">
+                        <form class="contact-form" id="contactForm" novalidate>
+                            <div class="form-group">
+                                <label for="name">Nombre Completo *</label>
+                                <input type="text" id="name" name="name" required>
+                                <div class="form-error" id="nameError"></div>
+                            </div>
+                            <div class="form-group">
+                                <label for="email">Email *</label>
+                                <input type="email" id="email" name="email" required>
+                                <div class="form-error" id="emailError"></div>
+                            </div>
+                            <div class="form-group">
+                                <label for="phone">Teléfono</label>
+                                <input type="tel" id="phone" name="phone">
+                            </div>
+                            <div class="form-group">
+                                <label for="event-type">Tipo de Evento *</label>
+                                <select id="event-type" name="event-type" required>
+                                    <option value="">Selecciona el tipo de evento</option>
+                                    <option value="boda">Boda</option>
+                                    <option value="cumpleanos">Cumpleaños</option>
+                                    <option value="bautizo">Bautizo</option>
+                                    <option value="baby-shower">Baby Shower</option>
+                                    <option value="otro">Otro</option>
+                                </select>
+                                <div class="form-error" id="eventTypeError"></div>
+                            </div>
+                            <div class="form-group">
+                                <label for="event-date">Fecha del Evento</label>
+                                <input type="date" id="event-date" name="event-date">
+                            </div>
+                            <div class="form-group">
+                                <label for="package">Paquete de Interés</label>
+                                <select id="package" name="package">
+                                    <option value="">Selecciona un paquete</option>
+                                    <option value="basico">Básico - €159-€299</option>
+                                    <option value="intermedio">Intermedio - €299-€499</option>
+                                    <option value="premium">Premium - €499-€799</option>
+                                </select>
+                            </div>
+                            <div class="form-group">
+                                <label for="message">Mensaje</label>
+                                <textarea id="message" name="message" rows="4" placeholder="Cuéntanos sobre tu visión para la invitación..."></textarea>
+                            </div>
+                            <button type="submit" class="btn btn-primary btn-full">
+                                <span class="btn-text">Enviar Consulta</span>
+                                <span class="loading-spinner" style="display: none;"></span>
+                            </button>
+                        </form>
+                    </div>
+                </div>
+            </div>
+        </section>
+    </main>
+
+    <!-- Footer -->
+    <footer class="footer">
+        <div class="container">
+            <div class="footer-content">
+                <div class="footer-section">
+                    <h3 class="footer-title">InviteU.Digital</h3>
+                    <p class="footer-description">Creamos invitaciones digitales únicas para todos tus eventos especiales.</p>
+                    <div class="social-links">
+                        <a href="#" class="social-link" aria-label="Twitter">
+                            <svg viewBox="0 0 24 24" fill="currentColor">
+                                <path d="M24 4.557c-.883.392-1.832.656-2.828.775 1.017-.609 1.798-1.574 2.165-2.724-.951.564-2.005.974-3.127 1.195-.897-.957-2.178-1.555-3.594-1.555-3.179 0-5.515 2.966-4.797 6.045-4.091-.205-7.719-2.165-10.148-5.144-1.29 2.213-.669 5.108 1.523 6.574-.806-.026-1.566-.247-2.229-.616-.054 2.281 1.581 4.415 3.949 4.89-.693.188-1.452.232-2.224.084.626 1.956 2.444 3.379 4.6 3.419-2.07 1.623-4.678 2.348-7.29 2.04 2.179 1.397 4.768 2.212 7.548 2.212 9.142 0 14.307-7.721 13.995-14.646.962-.695 1.797-1.562 2.457-2.549z"/>
+                            </svg>
+                        </a>
+                        <a href="#" class="social-link" aria-label="Facebook">
+                            <svg viewBox="0 0 24 24" fill="currentColor">
+                                <path d="M22.46 6c-.77.35-1.6.58-2.46.69.88-.53 1.56-1.37 1.88-2.38-.83.5-1.75.85-2.72 1.05C18.37 4.5 17.26 4 16 4c-2.35 0-4.27 1.92-4.27 4.29 0 .34.04.67.11.98C8.28 9.09 5.11 7.38 3 4.79c-.37.63-.58 1.37-.58 2.15 0 1.49.75 2.81 1.91 3.56-.71 0-1.37-.2-1.95-.5v.03c0 2.08 1.48 3.82 3.44 4.21a4.22 4.22 0 0 1-1.93.07 4.28 4.28 0 0 0 4 2.98 8.521 8.521 0 0 1-5.33 1.84c-.34 0-.68-.02-1.02-.06C3.44 20.29 5.7 21 8.12 21 16 21 20.33 14.46 20.33 8.79c0-.19 0-.37-.01-.56.84-.6 1.56-1.36 2.14-2.23z"/>
+                            </svg>
+                        </a>
+                        <a href="#" class="social-link" aria-label="Instagram">
+                            <svg viewBox="0 0 24 24" fill="currentColor">
+                                <path d="M12.017 0C5.396 0 .029 5.367.029 11.987c0 5.079 3.158 9.417 7.618 11.174-.105-.949-.199-2.403.041-3.439.219-.937 1.406-5.957 1.406-5.957s-.359-.72-.359-1.781c0-1.663.967-2.911 2.168-2.911 1.024 0 1.518.769 1.518 1.688 0 1.029-.653 2.567-.992 3.992-.285 1.193.6 2.165 1.775 2.165 2.128 0 3.768-2.245 3.768-5.487 0-2.861-2.063-4.869-5.008-4.869-3.41 0-5.409 2.562-5.409 5.199 0 1.033.394 2.143.889 2.741.099.12.112.225.085.345-.09.375-.293 1.199-.334 1.363-.053.225-.172.271-.402.165-1.495-.69-2.433-2.878-2.433-4.646 0-3.776 2.748-7.252 7.92-7.252 4.158 0 7.392 2.967 7.392 6.923 0 4.135-2.607 7.462-6.233 7.462-1.214 0-2.357-.629-2.75-1.378l-.748 2.853c-.271 1.043-1.002 2.35-1.492 3.146C9.57 23.812 10.763 24.009 12.017 24.009c6.624 0 11.99-5.367 11.99-11.988C24.007 5.367 18.641.001.012.001z"/>
+                            </svg>
+                        </a>
+                    </div>
+                </div>
+                <div class="footer-section">
+                    <h3 class="footer-title">Eventos</h3>
+                    <ul class="footer-links">
+                        <li><a href="#" class="footer-link">Bodas</a></li>
+                        <li><a href="#" class="footer-link">Cumpleaños</a></li>
+                        <li><a href="#" class="footer-link">Bautizos</a></li>
+                        <li><a href="#" class="footer-link">Baby Showers</a></li>
+                    </ul>
+                </div>
+                <div class="footer-section">
+                    <h3 class="footer-title">Servicios</h3>
+                    <ul class="footer-links">
+                        <li><a href="#" class="footer-link">Paquete Básico</a></li>
+                        <li><a href="#" class="footer-link">Paquete Intermedio</a></li>
+                        <li><a href="#" class="footer-link">Paquete Premium</a></li>
+                        <li><a href="#" class="footer-link">Diseños Personalizados</a></li>
+                    </ul>
+                </div>
+                <div class="footer-section">
+                    <h3 class="footer-title">Contacto</h3>
+                    <ul class="footer-contact">
+                        <li>Email: hola@inviteu.digital</li>
+                        <li>Teléfono: +34 123 456 789</li>
+                        <li>Madrid, España</li>
+                    </ul>
+                </div>
+            </div>
+            <div class="footer-bottom">
+                © <span id="currentYear"></span> InviteU.Digital. Todos los derechos reservados.
+            </div>
+        </div>
+    </footer>
+
+    <!-- Dynamic content containers -->
+    <div id="modalContainer"></div>
+    <div id="notificationContainer"></div>
+
+    <!-- Load external scripts asynchronously -->
+    <script>
+        // Load external scripts asynchronously
+        const loadScript = (src, callback) => {
+            const script = document.createElement('script');
+            script.src = src;
+            script.async = true;
+            if (callback) script.onload = callback;
+            document.head.appendChild(script);
+        };
+
+        // Load Stripe and Supabase
+        loadScript('https://js.stripe.com/v3/');
+        loadScript('https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2');
+    </script>
+
+    <!-- Core JavaScript Bundle -->
+    <script type="module" src="js/main.js"></script>
+</body>
+</html>
